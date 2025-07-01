@@ -12,7 +12,7 @@ using System.Text;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<BudgetDbContext>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -35,6 +35,8 @@ builder.Services.AddCors(options =>
         });
 });
 
+string? secretString = builder.Configuration["Jwt:Secret"];
+ArgumentNullException.ThrowIfNull(secretString);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,18 +46,18 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters.ValidAudience = builder.Configuration["Jwt:ValidAudience"];
     options.TokenValidationParameters.ValidIssuer = builder.Configuration["Jwt:ValidIssuer"];
-    options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]));
+    options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretString));
 });
 
 builder.Services.AddAuthorization();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
-var companiesGroup = app.MapGroup("/api/v1").WithValidationFilter();
+RouteGroupBuilder companiesGroup = app.MapGroup("/api/v1").WithValidationFilter();
 CompanyEndpoints.AddCompanyApi(companiesGroup);
-var departmentsGroup = app.MapGroup("/api/v1/companies/{companyId}").WithValidationFilter();
+RouteGroupBuilder departmentsGroup = app.MapGroup("/api/v1/companies/{companyId}").WithValidationFilter();
 DepartmentEndpoints.AddDepartmentApi(departmentsGroup);
-var purchasesGroup = app.MapGroup("/api/v1/companies/{companyId}/departments/{departmentId}").WithValidationFilter();
+RouteGroupBuilder purchasesGroup = app.MapGroup("/api/v1/companies/{companyId}/departments/{departmentId}").WithValidationFilter();
 PurchaseEndpoints.AddPurchaseApi(purchasesGroup);
 
 app.AddAuthApi();
@@ -67,10 +69,10 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-using var scope = app.Services.CreateScope();
-var dbcontext = scope.ServiceProvider.GetRequiredService<BudgetDbContext>();
+using IServiceScope scope = app.Services.CreateScope();
+BudgetDbContext dbcontext = scope.ServiceProvider.GetRequiredService<BudgetDbContext>();
 dbcontext.Database.Migrate();
-var dbSeeder = scope.ServiceProvider.GetRequiredService<AuthDbSeeder>();
+AuthDbSeeder dbSeeder = scope.ServiceProvider.GetRequiredService<AuthDbSeeder>();
 
 await dbSeeder.SeedAsync();
 

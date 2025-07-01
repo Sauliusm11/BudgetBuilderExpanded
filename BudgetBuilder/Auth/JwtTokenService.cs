@@ -11,11 +11,18 @@ namespace BudgetBuilder.Auth
         private readonly string _issuer;
         private readonly string _audience;
 
-        public JwtTokenService (IConfiguration configuration)
+        public JwtTokenService(IConfiguration configuration)
         {
-            _authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]));
-            _issuer = configuration["Jwt:ValidIssuer"];
-            _audience = configuration["Jwt:ValidAudience"];
+            string? secretString = configuration["Jwt:Secret"];
+            string? issuer = configuration["Jwt:ValidIssuer"];
+            string? audience = configuration["Jwt:ValidAudience"];
+            ArgumentNullException.ThrowIfNull(secretString);
+            ArgumentNullException.ThrowIfNull(issuer);
+            ArgumentNullException.ThrowIfNull(audience);
+            _authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretString));
+            _issuer = issuer;
+            _audience = audience;
+
         }
 
         public string CreateAccessToken(string userName, string userId, IEnumerable<string> roles)

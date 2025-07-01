@@ -1,20 +1,17 @@
-﻿using BudgetBuilder.Data.Entities;
-using BudgetBuilder.Data;
-using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
-using O9d.AspNet.FluentValidation;
-using System.ComponentModel.DataAnnotations;
-using BudgetBuilder.Data.Dtos;
-using BudgetBuilder.Helpers;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
+using BudgetBuilder.Auth.Model;
+using BudgetBuilder.Data;
+using BudgetBuilder.Data.Dtos;
+using BudgetBuilder.Data.Entities;
+using BudgetBuilder.Helpers;
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using BudgetBuilder.Auth.Model;
-using Microsoft.AspNetCore.Authorization;
-using System.Net.Http;
+using Microsoft.EntityFrameworkCore;
+using O9d.AspNet.FluentValidation;
 
 namespace BudgetBuilder.Endpoints
 {
@@ -22,19 +19,25 @@ namespace BudgetBuilder.Endpoints
     {
         public static void AddCompanyApi(RouteGroupBuilder companiesGroup)
         {
-            companiesGroup.MapGet("companies", [Authorize(Roles = BudgetRoles.Admin)] async ([AsParameters] PagingParameters pagingParameters,BudgetDbContext dbContext, LinkGenerator linkGenerator, HttpContext httpContext) =>
+            companiesGroup.MapGet("companies", [Authorize(Roles = BudgetRoles.Admin)] async ([AsParameters] PagingParameters pagingParameters, BudgetDbContext dbContext, LinkGenerator linkGenerator, HttpContext httpContext) =>
             {
 
-                var queryable =  dbContext.Companies.AsQueryable().OrderBy(o => o.Id);
-                var pagedList = await PagedList<Company>.CreateAsync(queryable, pagingParameters.PageNumber.Value, pagingParameters.PageSize.Value);
+                IQueryable<Company> queryable = dbContext.Companies.AsQueryable().OrderBy(o => o.Id);
+                int? pageNumber = pagingParameters.PageNumber;
+                int? pageSize = pagingParameters.PageSize;
+                if(pageNumber == null || pageSize == null)
+                {
+                    return null;
+                }
+                PagedList<Company> pagedList = await PagedList<Company>.CreateAsync(queryable, pageNumber.Value, pageSize.Value);
 
-                var previousPageLink = pagedList.HasPrevious ? linkGenerator.GetUriByName(httpContext, "GetCompanies", new { pageNumber = pagingParameters.PageNumber - 1, pageSize = pagingParameters.PageSize }) : null;
-                var nextPageLink = pagedList.HasNext ? linkGenerator.GetUriByName(httpContext, "GetCompanies", new { pageNumber = pagingParameters.PageNumber + 1, pageSize = pagingParameters.PageSize }) : null;
+                string? previousPageLink = pagedList.HasPrevious ? linkGenerator.GetUriByName(httpContext, "GetCompanies", new { pageNumber = pagingParameters.PageNumber - 1, pageSize = pagingParameters.PageSize }) : null;
+                string? nextPageLink = pagedList.HasNext ? linkGenerator.GetUriByName(httpContext, "GetCompanies", new { pageNumber = pagingParameters.PageNumber + 1, pageSize = pagingParameters.PageSize }) : null;
 
                 var paginationMetaData = new PaginationMetadata(pagedList.TotalCount, pagedList.PageSize, pagedList.CurrentPage, pagedList.TotalPages, previousPageLink, nextPageLink);
-                httpContext.Response.Headers.Add("Pagination",JsonSerializer.Serialize(paginationMetaData));
+                httpContext.Response.Headers.Append("Pagination", JsonSerializer.Serialize(paginationMetaData));
                 //https://stackoverflow.com/a/56959114
-                httpContext.Response.Headers.Add("Access-Control-Expose-Headers", "Pagination");
+                httpContext.Response.Headers.Append("Access-Control-Expose-Headers", "Pagination");
 
 
                 return pagedList.Select(company => new CompanyDto(company.Id, company.Name, company.EstablishedDate));
@@ -43,7 +46,7 @@ namespace BudgetBuilder.Endpoints
 
             companiesGroup.MapGet("companies/{companyId}", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, int companyId, HttpContext httpContext) =>
             {
-                var company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+                Company? company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
                 if (company == null)
                 {
                     //404
@@ -60,36 +63,47 @@ namespace BudgetBuilder.Endpoints
 
             companiesGroup.MapPost("companies", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, [Validate] CreateCompanyDto createCompanyDto, LinkGenerator linkGenerator, HttpContext httpContext) =>
             {
-                var company = new Company() { Name = createCompanyDto.Name, EstablishedDate = createCompanyDto.EstablishedDate, 
-                UserId = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) };
+                string? userId = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                if (userId == null)
+                {
+                    return Results.Forbid();
+                }
+
+                var company = new Company()
+                {
+                    Name = createCompanyDto.Name,
+                    EstablishedDate = createCompanyDto.EstablishedDate,
+                    UserId = userId
+                };
 
                 dbContext.Companies.Add(company);
 
                 await dbContext.SaveChangesAsync();
 
-                var links = CreateLinks(company.Id, httpContext, linkGenerator);
+                IEnumerable<LinkDto> links = CreateLinks(company.Id, httpContext, linkGenerator);
                 var companyDto = new CompanyDto(company.Id, company.Name, company.EstablishedDate);
 
                 var resource = new ResourceDto<CompanyDto>(companyDto, links.ToArray());
                 //201
                 return Results.Created($"api/v1/companies/{company.Id}", resource);
+
             }).WithName("CreateCompany");
 
             companiesGroup.MapPut("companies/{companyId}", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, [Validate] UpdateCompanyDto updateCompanyDto, int companyId, HttpContext httpContext) =>
             {
-                var company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+                Company? company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
                 if (company == null)
                 {
                     //404
                     return Results.NotFound();
                 }
 
-                if(!httpContext.User.IsInRole(BudgetRoles.Admin) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) != company.UserId)
+                if (!httpContext.User.IsInRole(BudgetRoles.Admin) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) != company.UserId)
                 {
                     return Results.Forbid();
                 }
 
-                if(updateCompanyDto.Name == null || updateCompanyDto.EstablishedDate.Equals(DateTime.MinValue))
+                if (updateCompanyDto.Name == null || updateCompanyDto.EstablishedDate.Equals(DateTime.MinValue))
                 {
                     return Results.UnprocessableEntity();
                 }
@@ -104,7 +118,7 @@ namespace BudgetBuilder.Endpoints
 
             companiesGroup.MapDelete("companies/{companyId}", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, int companyId, HttpContext httpContext) =>
             {
-                var company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+                Company? company = await dbContext.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
                 if (company == null)
                 {
                     //404
@@ -123,9 +137,15 @@ namespace BudgetBuilder.Endpoints
         }
         static IEnumerable<LinkDto> CreateLinks(int companyId, HttpContext httpContext, LinkGenerator linkGenerator)
         {
-            yield return new LinkDto(linkGenerator.GetUriByName(httpContext, "GetCompany", new { companyId }), "self", "GET");
-            yield return new LinkDto(linkGenerator.GetUriByName(httpContext, "EditCompany", new { companyId }), "edit", "PUT");
-            yield return new LinkDto(linkGenerator.GetUriByName(httpContext, "DeleteCompany", new { companyId }), "delete", "DELETE");
+            string? getUri = linkGenerator.GetUriByName(httpContext, "GetCompany", new { companyId });
+            string? editUri = linkGenerator.GetUriByName(httpContext, "EditCompany", new { companyId });
+            string? deleteUri = linkGenerator.GetUriByName(httpContext, "DeleteCompany", new { companyId });
+            ArgumentNullException.ThrowIfNull(getUri);
+            ArgumentNullException.ThrowIfNull(editUri);
+            ArgumentNullException.ThrowIfNull(deleteUri);
+            yield return new LinkDto(getUri, "self", "GET");
+            yield return new LinkDto(editUri, "edit", "PUT");
+            yield return new LinkDto(deleteUri, "delete", "DELETE");
         }
     }
 }

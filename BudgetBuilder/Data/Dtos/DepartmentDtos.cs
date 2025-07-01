@@ -1,5 +1,4 @@
-﻿using BudgetBuilder.Data.Entities;
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace BudgetBuilder.Data.Dtos
 {
@@ -22,5 +21,5 @@ namespace BudgetBuilder.Data.Dtos
             RuleFor(dto => dto.Name).NotEmpty().NotNull().Length(min: 2, max: 255);
         }
     }
- 
+
 }

@@ -11,6 +11,6 @@ namespace BudgetBuilder.Data.Entities
 
         [Required]
         public required string UserId { get; set; }
-        public BudgetRestUser User { get; set; }
+        public BudgetRestUser? User { get; set; }
     }
 }
