@@ -1,10 +1,8 @@
 ﻿using BudgetBuilder.Auth.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.VisualBasic;
 using O9d.AspNet.FluentValidation;
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace BudgetBuilder.Auth
@@ -172,10 +170,3 @@ namespace BudgetBuilder.Auth
         }
     }
 }
-
-public record UserDto(string UserId, string UserName, string Email);
-public record RegisterUserDto(string Username, string Email, string Password);
-public record LoginUserDto(string Username, string Password);
-public record SuccessfulLoginDto(string AccessToken, string RefreshToken);
-public record RefreshAccessTokenDto(string RefreshToken);
-public record SupervisorDto(string supervisor);
