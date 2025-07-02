@@ -1,5 +1,4 @@
 ﻿using BudgetBuilder.Auth.Model;
-using FluentValidation;
 using System.ComponentModel.DataAnnotations;
 
 namespace BudgetBuilder.Data.Entities

@@ -1,22 +1,16 @@
 ﻿using BudgetBuilder.Data.Entities;
 using BudgetBuilder.Data;
 using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using O9d.AspNet.FluentValidation;
-using System.ComponentModel.DataAnnotations;
 using BudgetBuilder.Data.Dtos;
 using BudgetBuilder.Helpers;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using BudgetBuilder.Auth.Model;
 using Microsoft.AspNetCore.Authorization;
-using System.Net.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BudgetBuilder.Endpoints
 {

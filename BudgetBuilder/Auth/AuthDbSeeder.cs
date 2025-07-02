@@ -3,16 +3,11 @@ using Microsoft.AspNetCore.Identity;
 
 namespace BudgetBuilder.Auth
 {
-    public class AuthDbSeeder
+    public class AuthDbSeeder(UserManager<BudgetRestUser> userManager, RoleManager<IdentityRole> roleManager)
     {
-        private readonly UserManager<BudgetRestUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<BudgetRestUser> _userManager = userManager;
+        private readonly RoleManager<IdentityRole> _roleManager = roleManager;
 
-        public AuthDbSeeder(UserManager<BudgetRestUser> userManager, RoleManager<IdentityRole> roleManager)
-        {
-            _userManager = userManager;
-            _roleManager = roleManager;
-        }
         public async Task SeedAsync()
         {
             await AddDefaultRoles();
