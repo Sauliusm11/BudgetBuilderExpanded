@@ -2,26 +2,22 @@
 using BudgetBuilder.Data.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace BudgetBuilder.Data
 {
-    public class BudgetDbContext : IdentityDbContext<BudgetRestUser>
+    public class BudgetDbContext(IConfiguration configuration) : IdentityDbContext<BudgetRestUser>
     {
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration = configuration;
 
         public DbSet<Company> Companies { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Purchase> Purchases { get; set; }
 
-
-        public BudgetDbContext(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL(_configuration.GetConnectionString("MySql"));
+            string? connectionString = _configuration.GetConnectionString("MySql");
+            ArgumentNullException.ThrowIfNull(connectionString);
+            optionsBuilder.UseMySQL(connectionString);
         }
     }
 }

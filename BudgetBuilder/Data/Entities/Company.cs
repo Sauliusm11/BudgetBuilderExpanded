@@ -1,5 +1,4 @@
 ﻿using BudgetBuilder.Auth.Model;
-using FluentValidation;
 using System.ComponentModel.DataAnnotations;
 
 namespace BudgetBuilder.Data.Entities
@@ -12,8 +11,8 @@ namespace BudgetBuilder.Data.Entities
 
         [Required]
         public required string UserId { get; set; }
-        public BudgetRestUser User { get; set; }
+        public BudgetRestUser? User { get; set; }
     }
 
-  
+
 }

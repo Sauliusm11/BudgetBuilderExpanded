@@ -6,6 +6,6 @@
         public const string CompanyManager = nameof(CompanyManager);
         public const string BudgetUser = nameof(BudgetUser);
 
-        public static readonly IReadOnlyCollection<string> All = new[] {Admin, CompanyManager, BudgetUser};
+        public static readonly IReadOnlyCollection<string> All = new[] { Admin, CompanyManager, BudgetUser };
     }
 }
