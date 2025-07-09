@@ -1,5 +1,6 @@
 ﻿using BudgetBuilder.Domain.Auth;
 using BudgetBuilder.Domain.Auth.Model;
+using BudgetBuilder.Domain.Reports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using O9d.AspNet.FluentValidation;
@@ -80,6 +81,7 @@ namespace BudgetBuilder.API.Endpoints
             //login
             app.MapPost("api/v1/login", async (UserManager<BudgetRestUser> userManager, JwtTokenService jwtTokenService, LoginUserDto loginUserDto) =>
             {
+                Console.WriteLine(ReportGenerator.GenerateSimplePurchasePdf());
                 BudgetRestUser? user = await userManager.FindByNameAsync(loginUserDto.Username);
                 if (user == null)
                 {

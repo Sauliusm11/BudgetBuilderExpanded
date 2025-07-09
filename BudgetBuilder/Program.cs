@@ -1,14 +1,18 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using BudgetBuilder.API.Endpoints;
 using BudgetBuilder.Domain.Auth;
 using BudgetBuilder.Domain.Auth.Model;
+using BudgetBuilder.Infrastructure;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using BudgetBuilder.Infrastructure;
-using BudgetBuilder.API.Endpoints;
+using PdfSharp.Fonts;
+
+
+GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 

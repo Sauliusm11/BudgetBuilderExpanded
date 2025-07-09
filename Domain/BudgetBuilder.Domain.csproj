@@ -21,6 +21,7 @@
 		<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.12.1" />
 		<PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.5" />
 		<PackageReference Include="O9d.AspNet.FluentValidation" Version="0.1.1" />
+		<PackageReference Include="PDFsharp" Version="6.2.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 		<PackageReference Include="System.Drawing.Common" Version="9.0.6" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
