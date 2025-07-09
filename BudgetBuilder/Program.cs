@@ -1,7 +1,5 @@
-using BudgetBuilder.Auth;
-using BudgetBuilder.Auth.Model;
-using BudgetBuilder.Data;
-using BudgetBuilder.Endpoints;
+using BudgetBuilder.Domain.Auth;
+using BudgetBuilder.Domain.Auth.Model;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using BudgetBuilder.Infrastructure;
+using BudgetBuilder.API.Endpoints;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 

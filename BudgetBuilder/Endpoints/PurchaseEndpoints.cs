@@ -1,18 +1,18 @@
-﻿using BudgetBuilder.Data.Entities;
-using BudgetBuilder.Data;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using O9d.AspNet.FluentValidation;
-using BudgetBuilder.Data.Dtos;
-using BudgetBuilder.Helpers;
+using BudgetBuilder.Domain.Data.Dtos;
+using BudgetBuilder.Domain.Helpers;
 using System.Text.Json;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using BudgetBuilder.Auth.Model;
+using BudgetBuilder.Domain.Auth.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using BudgetBuilder.Domain.Data.Entities;
+using BudgetBuilder.Infrastructure;
 
-namespace BudgetBuilder.Endpoints
+namespace BudgetBuilder.API.Endpoints
 {
     public class PurchaseEndpoints
     {
@@ -33,12 +33,12 @@ namespace BudgetBuilder.Endpoints
                     return Results.Ok();
                 }
                 string? userId = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-                if(userId == null)
+                if (userId == null)
                 {
                     return Results.UnprocessableEntity("User id not found");
                 }
-                BudgetRestUser ? user = await userManager.FindByIdAsync(userId);
-                if(user == null)
+                BudgetRestUser? user = await userManager.FindByIdAsync(userId);
+                if (user == null)
                 {
                     return Results.UnprocessableEntity("User not found");
                 }
@@ -47,7 +47,7 @@ namespace BudgetBuilder.Endpoints
                 {
                     return Results.Forbid();
                 }
-                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || (httpContext.User.IsInRole(BudgetRoles.CompanyManager) && department.UserId == httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub)))
+                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || httpContext.User.IsInRole(BudgetRoles.CompanyManager) && department.UserId == httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
                 && supervisor != department.UserId)
                 {
                     return Results.Forbid();
@@ -115,7 +115,7 @@ namespace BudgetBuilder.Endpoints
                         UserId = userId
                     };
                     BudgetRestUser? user = await userManager.FindByIdAsync(userId);
-                    if(user == null)
+                    if (user == null)
                     {
                         return Results.Forbid();
                     }
@@ -124,7 +124,7 @@ namespace BudgetBuilder.Endpoints
                     {
                         return Results.Forbid();
                     }
-                    if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || (httpContext.User.IsInRole(BudgetRoles.CompanyManager) && department.UserId == httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub)))
+                    if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || httpContext.User.IsInRole(BudgetRoles.CompanyManager) && department.UserId == httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
                     && supervisor != department.UserId)
                     {
                         return Results.Forbid();
@@ -160,7 +160,7 @@ namespace BudgetBuilder.Endpoints
                     //404
                     return Results.NotFound();
                 }
-                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || (httpContext.User.IsInRole(BudgetRoles.CompanyManager) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) == department.UserId)) && purchase.UserId != httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
+                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || httpContext.User.IsInRole(BudgetRoles.CompanyManager) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) == department.UserId) && purchase.UserId != httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
                 {
                     return Results.Forbid();
                 }
@@ -196,7 +196,7 @@ namespace BudgetBuilder.Endpoints
                     //404
                     return Results.NotFound();
                 }
-                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || (httpContext.User.IsInRole(BudgetRoles.CompanyManager) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) == department.UserId)) && purchase.UserId != httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
+                if (!(httpContext.User.IsInRole(BudgetRoles.Admin) || httpContext.User.IsInRole(BudgetRoles.CompanyManager) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) == department.UserId) && purchase.UserId != httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub))
                 {
                     if (httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) != purchase.UserId)
                     {

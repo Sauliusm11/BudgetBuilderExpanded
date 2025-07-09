@@ -1,17 +1,18 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using BudgetBuilder.Auth.Model;
-using BudgetBuilder.Data;
-using BudgetBuilder.Data.Dtos;
-using BudgetBuilder.Data.Entities;
-using BudgetBuilder.Helpers;
+using BudgetBuilder.Domain.Auth.Model;
+using BudgetBuilder.Domain.Data.Dtos;
+using BudgetBuilder.Domain.Data.Entities;
+using BudgetBuilder.Domain.Helpers;
+using BudgetBuilder.Infrastructure;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using O9d.AspNet.FluentValidation;
 
-namespace BudgetBuilder.Endpoints
+
+namespace BudgetBuilder.API.Endpoints
 {
     public class CompanyEndpoints
     {
@@ -23,7 +24,7 @@ namespace BudgetBuilder.Endpoints
                 IQueryable<Company> queryable = dbContext.Companies.AsQueryable().OrderBy(o => o.Id);
                 int? pageNumber = pagingParameters.PageNumber;
                 int? pageSize = pagingParameters.PageSize;
-                if(pageNumber == null || pageSize == null)
+                if (pageNumber == null || pageSize == null)
                 {
                     return null;
                 }
