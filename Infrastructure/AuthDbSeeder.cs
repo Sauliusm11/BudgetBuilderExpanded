@@ -1,7 +1,7 @@
 ﻿using BudgetBuilder.Domain.Auth.Model;
 using Microsoft.AspNetCore.Identity;
 
-namespace BudgetBuilder.Domain.Auth
+namespace BudgetBuilder.Infrastructure
 {
     public class AuthDbSeeder(UserManager<BudgetRestUser> userManager, RoleManager<IdentityRole> roleManager)
     {

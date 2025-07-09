@@ -1,13 +1,12 @@
-﻿using BudgetBuilder.Domain.Auth.Model;
+﻿using BudgetBuilder.Domain.Auth;
+using BudgetBuilder.Domain.Auth.Model;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using O9d.AspNet.FluentValidation;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace BudgetBuilder.Domain.Auth
+namespace BudgetBuilder.API.Endpoints
 {
     public static class AuthEndpoints
     {
