@@ -81,7 +81,6 @@ namespace BudgetBuilder.API.Endpoints
             //login
             app.MapPost("api/v1/login", async (UserManager<BudgetRestUser> userManager, JwtTokenService jwtTokenService, LoginUserDto loginUserDto) =>
             {
-                Console.WriteLine(ReportGenerator.GenerateSimplePurchasePdf());
                 BudgetRestUser? user = await userManager.FindByNameAsync(loginUserDto.Username);
                 if (user == null)
                 {

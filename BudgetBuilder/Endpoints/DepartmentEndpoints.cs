@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using O9d.AspNet.FluentValidation;
 using BudgetBuilder.Infrastructure;
+using BudgetBuilder.Domain.Reports;
 
 namespace BudgetBuilder.API.Endpoints
 {
@@ -73,6 +74,24 @@ namespace BudgetBuilder.API.Endpoints
                 //200
                 return Results.Ok(new DepartmentDto(department.Id, department.Name));
             }).WithName("GetDepartment");
+
+            departmentsGroup.MapGet("departments/generate/{departmentId}", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, int companyId, int departmentId, HttpContext httpContext) =>
+            {
+                Department? department = await dbContext.Departments.FirstOrDefaultAsync(d => d.Id == departmentId && d.Company.Id == companyId);
+                if (department == null)
+                {
+                    //404
+                    return Results.NotFound();
+                }
+                if (!httpContext.User.IsInRole(BudgetRoles.Admin) && httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub) != department.UserId)
+                {
+                    return Results.Forbid();
+                }
+                IQueryable<Purchase> queryable = dbContext.Purchases.AsQueryable().OrderBy(o => o.Id).Where(o => o.Department.Company.Id == companyId && o.Department.Id == departmentId);
+                List<Purchase> purchases = queryable.ToList();
+                //200
+                return Results.Ok(new DepartmentReportDto(ReportGenerator.GenerateSimplePurchasePdf(purchases)));
+            }).WithName("GetDepartmentReport");
 
             departmentsGroup.MapPost("departments", [Authorize(Roles = BudgetRoles.CompanyManager)] async (BudgetDbContext dbContext, [Validate] CreateDepartmentDto createDepartmentDto, int companyId, LinkGenerator linkGenerator, HttpContext httpContext) =>
             {

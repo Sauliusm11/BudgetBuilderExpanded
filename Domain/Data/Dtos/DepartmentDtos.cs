@@ -6,6 +6,7 @@ namespace BudgetBuilder.Domain.Data.Dtos
     public record DepartmentDto(int Id, string Name);
     public record CreateDepartmentDto(string Name);
     public record UpdateDepartmentDto(string Name);
+    public record DepartmentReportDto(string Base64);
 
     public class CreateDepartmentDtoValidator : AbstractValidator<CreateDepartmentDto>
     {
